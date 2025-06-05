@@ -1,0 +1,58 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/humans/pedestrian/protos/Pedestrian.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/robots/gctronic/e-puck/protos/E-puck.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/CorrugatedPvc.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation -0.055747177749326374 0.09358314267497982 0.9940495196820225 1.0798050910102333
+  position -2.1919133579723 -5.481747586735555 -0.2811883953809701
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  translation 0 0 -2.22
+  rotation 0 0 1 4.692820414042842e-06
+  floorSize 3 3
+}
+Pedestrian {
+  translation 0 0 -0.92
+  rotation -0.25056306820553154 -0.25056206820525934 -0.9351132545462786 1.63784
+}
+E-puck {
+  hidden position_0_0 6760.458624167711
+  hidden position_0_1 7446.9498675955565
+  hidden linearVelocity_0 -0.0507749763893174 0.0237688405945089 -1.7774878836116608e-08
+  hidden angularVelocity_0 -4.253206532477615e-05 -7.482780483369228e-05 0.09337693794005232
+  hidden rotation_1 0 -1 0 0.24876635752435317
+  hidden linearVelocity_1 -0.048576682298658413 0.022740099959308636 -3.900782845386151e-09
+  hidden angularVelocity_1 -1.1321041065368362 -2.4185634162017275 0.09511286082079784
+  hidden rotation_2 0 -1 0 4.907906719433064
+  hidden linearVelocity_2 -0.05297382900450394 0.024798527645691675 4.501373232305977e-09
+  hidden angularVelocity_2 -1.244773266118632 -2.658998940307752 0.09538923981370755
+  translation 0.36343829712360304 1.1800753152800385 -2.220064320732337
+  rotation 0.00024274528865055815 5.4829600324563844e-06 0.9999999705223307 2.7055216718637913
+}
+Solid {
+  translation 0 0 3662196.177097067
+  children [
+    Shape {
+      appearance CorrugatedPvc {
+      }
+      geometry Sphere {
+        radius 0.1
+      }
+    }
+  ]
+  boundingObject Sphere {
+    radius 0.1
+  }
+  linearVelocity 0 0 3519.93450417517
+}
