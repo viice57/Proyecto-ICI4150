@@ -1,14 +1,14 @@
-#include <webots/motor.h>
-#include <webots/robot.h>
 #include <webots/distance_sensor.h>
 #include <webots/lidar.h>
 #include <webots/gps.h>
+#include <webots/motor.h>
+#include <webots/robot.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #define TIME_STEP 64
-#define GRID_SIZE 8
+#define GRID_SIZE 10
 #define CELL_SIZE 0.5
 #define MAX_PATH_LEN 100
 #define MAX_OPEN_NODES 1000
@@ -120,7 +120,7 @@ int plan_path(int grid[GRID_SIZE][GRID_SIZE], Point start, Point goal, Point pat
  * This is the main program.
  * The arguments of the main function can be specified by the
  * "controllerArgs" field of the Robot node
- */
+*/
  
 int main() {
   wb_robot_init();
@@ -137,7 +137,6 @@ int main() {
   }
   
   //sensores 
-  bool avoid_obstacle_counter = 0;
   WbDeviceTag ds[2];
   char ds_names[2][10] = {"ds_left", "ds_right"};
   for (i = 0; i < 2; i++) {
@@ -146,6 +145,7 @@ int main() {
   }
   
   //lidar
+  
   WbDeviceTag lidar=wb_robot_get_device("lidar");
   wb_lidar_enable(lidar,TIME_STEP);
   wb_lidar_enable_point_cloud(lidar);
@@ -160,26 +160,31 @@ int main() {
   int path_length = 0;
   
   while (wb_robot_step(TIME_STEP) != -1) {
-
+   
+   //Flags
+   bool ds_detect_near=false;
+   bool lidar_detect_near=false;
+   
    left_speed = 1.0;
    right_speed = 1.0;
-   if (avoid_obstacle_counter > 0) {
-      avoid_obstacle_counter--;
-      left_speed = 1.0;
-      right_speed = -1.0;
-    } else { // read sensors
-      double ds_values[2];
-      for (i = 0; i < 2; i++)
-        ds_values[i] = wb_distance_sensor_get_value(ds[i]);
-      if (ds_values[0] < 950.0 || ds_values[1] < 950.0)
-        avoid_obstacle_counter = 100;
-    }
+   
+
+   double ds_values[2];
+   for (i = 0; i < 2; i++){
+     ds_values[i] = wb_distance_sensor_get_value(ds[i]);
+     printf("Sensor %d: %.2f\n", i, ds_values[i]);
+   }
+  if (ds_values[i] < 950.0)
+     ds_detect_near=true;
+        
+  
     
     //GPS
-    const float *pose = wb_gps_get_values(gps);
+    const double *pose = wb_gps_get_values(gps);
     float robot_x = pose[0];
     float robot_y = pose[2]; // Webots usa X-Z como plano horizontal
    
+    
     //lidar
     // (1) Obtener datos del LIDAR y construir mapa de obstáculos
     const float *ranges = wb_lidar_get_range_image(lidar);
@@ -188,7 +193,11 @@ int main() {
     
     for (int i = 0; i < resolution; i++) {
       double angle = -fov / 2 + i * (fov / resolution);
-      float dist = ranges[i];
+      double dist = ranges[i];
+      
+      //printf("Sensor lidar %d: %.2f\n", i, dist);
+      
+      if(isinf(dist)) continue; //ignorar infinito
 
       if (dist < 1.0) {
         float obs_x = robot_x + dist * cos(angle);
@@ -200,23 +209,39 @@ int main() {
         if (cell_x >= 0 && cell_x < GRID_SIZE && cell_y >= 0 && cell_y < GRID_SIZE)
           grid[cell_x][cell_y] = 1;  // Marcado como ocupado
       }
-    }
-     
-     // (2) Planificación (solo una vez o cada cierto tiempo)
+      
+      if(dist < 0.3)
+        lidar_detect_near=true; //obstaculo muy cerca girar
+    
+      }
+      
+      //plan path
+     //Planificación (solo una vez o cada cierto tiempo)
       Point start = {GRID_SIZE / 2, GRID_SIZE / 2};
       Point goal = {GRID_SIZE - 2, GRID_SIZE - 2};
       path_length = plan_path(grid, start, goal, path, 100);
+        
+     if(lidar_detect_near || ds_detect_near){
+       left_speed=1.0;
+       right_speed=-1.0;
+     } else if(path_length > 1) {
+       left_speed=SPEED;
+       right_speed=SPEED;
+      }
+    
+      
+    wb_motor_set_velocity(wheels[0], left_speed);
+    wb_motor_set_velocity(wheels[1], right_speed);
+    wb_motor_set_velocity(wheels[2], left_speed);
+    wb_motor_set_velocity(wheels[3], right_speed);
+        
+    
+     
+   
 
      // (3) Navegación hacia el siguiente punto (simplificada)
-     if (path_length > 0) {
-
-       wb_motor_set_velocity(wheels[0], left_speed);
-       wb_motor_set_velocity(wheels[1], right_speed);
-       wb_motor_set_velocity(wheels[2], left_speed);
-       wb_motor_set_velocity(wheels[3], right_speed);
+     
     
-  }
-   
     fflush(stdout); 
     
   };

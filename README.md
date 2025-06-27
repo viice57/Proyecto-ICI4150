@@ -2,8 +2,7 @@
 
 El repositorio contiene toda la documentación asociada a planificación, diseño, desarrollo y simulación de un robot móvil, como parte de las exigencias para el proyecto semestral del ramo *Robótica y Sistemas Autónomos*.
 
-* **Objetivo:** Desarrolllar un robot móvil autónomo en Webots, capaz de navegar por un
-entorno simulado evitando obstáculos, generando un mapa básico y planificando
+* **Objetivo:** Desarrolllar un robot móvil autónomo en Webots, capaz de navegar por un entorno simulado evitando obstáculos, generando un mapa básico y planificando
 rutas para alcanzar objetivos definidos.
 
 * **Tema elegido:** Aún no definido.
