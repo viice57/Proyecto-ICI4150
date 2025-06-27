@@ -24,8 +24,8 @@ Dentro del repositorio, está incluido lo siguiente:
 ## Recursos
 
 - [Enlace al repositorio](https://github.com/viice57/Proyecto-ICI4150.git)
-- [Enlace al informe](https://github.com/viice57/Proyecto-ICI4150/Otros/InformeFinal.pdf)
-- [Enlace al video](https://github.com/viice57/Proyecto-ICI4150/Otros/Prueba.mp4)
+- [Enlace al informe](https://github.com/viice57/Proyecto-ICI4150/tree/main/Otros/InformeFinal.pdf)
+- [Enlace al video](https://github.com/viice57/Proyecto-ICI4150/tree/main/Otros/Prueba.mp4)
 - [Documentación de Webots](https://cyberbotics.com/doc)
 - [Comunidad de Webots](https://forum.cyberbotics.com/)
 
