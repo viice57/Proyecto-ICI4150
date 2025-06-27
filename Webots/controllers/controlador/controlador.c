@@ -116,6 +116,10 @@ int plan_path(int grid[GRID_SIZE][GRID_SIZE], Point start, Point goal, Point pat
   return 0;
 }
 
+void recalculate_path(int grid[GRID_SIZE][GRID_SIZE], Point start, Point goal, Point path[], int *path_length) {
+    *path_length = plan_path(grid, start, goal, path, 100); // Usamos la función plan_path para recalcular la ruta
+}
+
 /*
  * This is the main program.
  * The arguments of the main function can be specified by the
@@ -158,93 +162,63 @@ int main() {
   int grid[GRID_SIZE][GRID_SIZE] = {0};
   Point path[100];
   int path_length = 0;
+  Point path[100];
+  Point start = {GRID_SIZE / 2, GRID_SIZE / 2};
+  Point goal = {GRID_SIZE - 2, GRID_SIZE - 2};
+  
+  // Generar la ruta inicial
+  recalculate_path(grid, start, goal, path, &path_length);
   
   while (wb_robot_step(TIME_STEP) != -1) {
-   
-   //Flags
-   bool ds_detect_near=false;
-   bool lidar_detect_near=false;
-   
-   left_speed = 1.0;
-   right_speed = 1.0;
-   
-
-   double ds_values[2];
-   for (i = 0; i < 2; i++){
-     ds_values[i] = wb_distance_sensor_get_value(ds[i]);
-     printf("Sensor %d: %.2f\n", i, ds_values[i]);
-   }
-  if (ds_values[i] < 950.0)
-     ds_detect_near=true;
-        
+      // Obtener valores de sensores
+      double ds_values[2];
+      bool obstacle_detected = false;
+      for (int i = 0; i < 2; i++) {
+          ds_values[i] = wb_distance_sensor_get_value(ds[i]);
+          if (ds_values[i] < 950.0) { // Umbral de detección de obstáculos
+              obstacle_detected = true;
+              break;
+          }
+      }
   
-    
-    //GPS
-    const double *pose = wb_gps_get_values(gps);
-    float robot_x = pose[0];
-    float robot_y = pose[2]; // Webots usa X-Z como plano horizontal
-   
-    
-    //lidar
-    // (1) Obtener datos del LIDAR y construir mapa de obstáculos
-    const float *ranges = wb_lidar_get_range_image(lidar);
-    int resolution = wb_lidar_get_horizontal_resolution(lidar);
-    double fov = wb_lidar_get_fov(lidar);
-    
-    for (int i = 0; i < resolution; i++) {
-      double angle = -fov / 2 + i * (fov / resolution);
-      double dist = ranges[i];
-      
-      //printf("Sensor lidar %d: %.2f\n", i, dist);
-      
-      if(isinf(dist)) continue; //ignorar infinito
-
-      if (dist < 1.0) {
-        float obs_x = robot_x + dist * cos(angle);
-        float obs_y = robot_y + dist * sin(angle);
-
-        int cell_x = (int)((obs_x + GRID_SIZE * CELL_SIZE / 2) / CELL_SIZE);
-        int cell_y = (int)((obs_y + GRID_SIZE * CELL_SIZE / 2) / CELL_SIZE);
-
-        if (cell_x >= 0 && cell_x < GRID_SIZE && cell_y >= 0 && cell_y < GRID_SIZE)
-          grid[cell_x][cell_y] = 1;  // Marcado como ocupado
+      // Obtener la posición actual del robot
+      const double *pose = wb_gps_get_values(gps);
+      float robot_x = pose[0];
+      float robot_y = pose[2];
+  
+      // Lógica para manejar obstáculos
+      if (obstacle_detected) {
+          printf("Obstáculo detectado, recalculando ruta...\n");
+          
+          // Actualizar la cuadrícula con los datos más recientes del entorno (LIDAR y sensores de distancia)
+          update_grid_with_sensor_data(grid);
+  
+          // Recalcular la ruta
+          recalculate_path(grid, start, goal, path, &path_length);
       }
-      
-      if(dist < 0.3)
-        lidar_detect_near=true; //obstaculo muy cerca girar
-    
+  
+      // Seguir el camino calculado
+      if (path_length > 1) {
+          Point next_point = path[0]; // Obtener el siguiente punto en el camino
+          float target_x = next_point.x * CELL_SIZE;
+          float target_y = next_point.y * CELL_SIZE;
+          
+          // Aquí implementa el movimiento hacia el siguiente punto (esto es solo una representación simplificada)
+          move_to_target(target_x, target_y);  // Implementa la lógica para mover al siguiente punto
+      } else {
+          // Si ya hemos alcanzado la meta
+          left_speed = 0.0;
+          right_speed = 0.0;
       }
-      
-      //plan path
-     //Planificación (solo una vez o cada cierto tiempo)
-      Point start = {GRID_SIZE / 2, GRID_SIZE / 2};
-      Point goal = {GRID_SIZE - 2, GRID_SIZE - 2};
-      path_length = plan_path(grid, start, goal, path, 100);
-        
-     if(lidar_detect_near || ds_detect_near){
-       left_speed=1.0;
-       right_speed=-1.0;
-     } else if(path_length > 1) {
-       left_speed=SPEED;
-       right_speed=SPEED;
-      }
-    
-      
-    wb_motor_set_velocity(wheels[0], left_speed);
-    wb_motor_set_velocity(wheels[1], right_speed);
-    wb_motor_set_velocity(wheels[2], left_speed);
-    wb_motor_set_velocity(wheels[3], right_speed);
-        
-    
-     
-   
-
-     // (3) Navegación hacia el siguiente punto (simplificada)
-     
-    
-    fflush(stdout); 
-    
+  
+      wb_motor_set_velocity(wheels[0], left_speed);
+      wb_motor_set_velocity(wheels[1], right_speed);
+      wb_motor_set_velocity(wheels[2], left_speed);
+      wb_motor_set_velocity(wheels[3], right_speed);
+  
+      fflush(stdout); 
   };
+
 
   
   wb_robot_cleanup();
